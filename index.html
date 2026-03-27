@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ar2Can: An Architect and an Artist Leveraging a Canvas for Multi-Human Generation</title>
+
+  <!-- ── SEO / Social ── -->
+  <meta name="description" content="Ar2Can: A two-stage framework disentangling spatial planning (Architect) from identity rendering (Artist) for reliable multi-human image generation." />
+  <meta property="og:title" content="Ar2Can: An Architect and an Artist Leveraging a Canvas for Multi-Human Generation" />
+  <meta property="og:description" content="Ar2Can decomposes multi-human generation into spatial planning and identity-preserving rendering, achieving state-of-the-art results on MultiHuman-Testbench." />
+  <meta property="og:type" content="website" />
+  <!-- TODO: replace with your deployed URL -->
+  <meta property="og:url" content="https://qualcomm-ai-research.github.io/ar2can/" />
+  <meta property="og:image" content="static/images/social_preview.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <!-- ── Fonts ── -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet" />
+
+  <!-- ── Bulma + Font Awesome ── -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.4/css/bulma.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    :root {
+      --brand: #1a1a2e;
+      --accent: #e94560;
+      --accent2: #0f3460;
+      --light-bg: #f8f8fc;
+      --card-bg: #ffffff;
+      --text: #1a1a2e;
+      --muted: #64647a;
+      --border: #e2e2ee;
+      --serif: 'Libre Baskerville', Georgia, serif;
+      --sans: 'Source Sans 3', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sans);
+      color: var(--text);
+      background: var(--light-bg);
+      font-size: 16px;
+      line-height: 1.75;
+    }
+
+    /* ── Navbar ── */
+    .navbar {
+      background: rgba(26,26,46,0.97);
+      backdrop-filter: blur(8px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid rgba(233,69,96,0.3);
+    }
+    .navbar-brand .navbar-item {
+      font-family: var(--serif);
+      font-size: 1.15rem;
+      color: #fff !important;
+    }
+    .navbar-brand .navbar-item span.accent { color: var(--accent); }
+    .navbar-item, .navbar-link { color: rgba(255,255,255,0.8) !important; font-size: 0.9rem; }
+    .navbar-item:hover { color: #fff !important; background: transparent !important; }
+
+    /* ── Hero ── */
+    .hero-section {
+      background: linear-gradient(135deg, var(--brand) 0%, var(--accent2) 60%, #16213e 100%);
+      color: #fff;
+      padding: 5rem 1.5rem 4rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 20% 30%, rgba(233,69,96,0.18) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 60% at 80% 70%, rgba(15,52,96,0.4) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-content { position: relative; z-index: 1; }
+
+    .venue-tag {
+      display: inline-block;
+      background: rgba(233,69,96,0.2);
+      border: 1px solid rgba(233,69,96,0.5);
+      color: rgba(255,255,255,0.9);
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.9rem;
+      border-radius: 100px;
+      margin-bottom: 1.5rem;
+    }
+
+    .paper-title {
+      font-family: var(--serif);
+      font-size: clamp(1.9rem, 4.5vw, 3.1rem);
+      line-height: 1.2;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    .paper-title .highlight { color: var(--accent); font-style: italic; }
+
+    .authors {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.85);
+      margin-bottom: 0.35rem;
+    }
+    .authors a { color: rgba(255,255,255,0.95); text-decoration: underline dotted; }
+    .affiliation {
+      font-size: 0.88rem;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: 2rem;
+    }
+
+    .hero-links { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; }
+    .btn-hero {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.6rem 1.3rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-decoration: none !important;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-hero:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+    .btn-primary  { background: var(--accent); color: #fff !important; }
+    .btn-secondary { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.3); color: #fff !important; }
+
+    /* ── Sections ── */
+    section { padding: 4.5rem 1.5rem; }
+    section:nth-child(even) { background: var(--card-bg); }
+
+    .section-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.4rem;
+    }
+    h2.section-title {
+      font-family: var(--serif);
+      font-size: clamp(1.55rem, 2.8vw, 2.2rem);
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--brand);
+      margin-bottom: 1.2rem;
+    }
+    h3.subsection-title {
+      font-family: var(--serif);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--brand);
+      margin: 2rem 0 0.6rem;
+    }
+    .section-body { max-width: 820px; margin: 0 auto; }
+    .section-body p { color: var(--muted); margin-bottom: 1rem; }
+
+    .container { max-width: 980px; margin: 0 auto; }
+    .text-center { text-align: center; }
+
+    /* ── Figures ── */
+    .fig-wrap {
+      max-width: 900px;
+      margin: 2rem auto;
+    }
+    .fig-wrap img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(26,26,46,0.12);
+    }
+    .fig-caption {
+      text-align: center;
+      font-size: 0.875rem;
+      color: var(--muted);
+      max-width: 820px;
+      margin: 0.75rem auto 0;
+      font-style: italic;
+      line-height: 1.55;
+    }
+    .fig-caption strong { color: var(--text); font-style: normal; }
+
+    /* ── Two-column architect cards ── */
+    .arch-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      max-width: 900px;
+      margin: 2rem auto;
+    }
+    @media (max-width: 640px) { .arch-grid { grid-template-columns: 1fr; } }
+
+    .arch-card {
+      background: var(--light-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem 1.4rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .arch-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .arch-card.a::before { background: #4f46e5; }
+    .arch-card.b::before { background: var(--accent); }
+
+    .arch-badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.65rem;
+      border-radius: 100px;
+      margin-bottom: 0.6rem;
+    }
+    .arch-card.a .arch-badge { background: rgba(79,70,229,0.1); color: #4f46e5; }
+    .arch-card.b .arch-badge { background: rgba(233,69,96,0.1); color: var(--accent); }
+
+    .arch-card h3 {
+      font-family: var(--serif);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--brand);
+      margin-bottom: 0.5rem;
+    }
+    .arch-card p { font-size: 0.88rem; color: var(--muted); line-height: 1.6; margin: 0 0 0.5rem; }
+    .arch-card ul { padding-left: 1.1rem; margin: 0; }
+    .arch-card ul li { font-size: 0.86rem; color: var(--muted); margin-bottom: 0.2rem; }
+
+    /* ── Results dark section ── */
+    .results-section { background: var(--brand) !important; color: #fff; }
+    .results-section h2.section-title { color: #fff; }
+    .results-section h3,
+    .results-section h4 { color: #fff; }
+    .results-section .section-label { color: rgba(233,69,96,0.9); }
+    .results-section p { color: rgba(255,255,255,0.82); }
+    .results-section .fig-caption { color: rgba(255,255,255,0.6); }
+    .results-section .fig-caption strong { color: rgba(255,255,255,0.9); }
+    .results-section .fig-caption em { color: rgba(255,255,255,0.75); }
+    .results-section .fig-wrap img { box-shadow: 0 4px 32px rgba(0,0,0,0.5); }
+
+    /* ── Metrics strip ── */
+    .metrics-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      margin: 2rem auto 0;
+      max-width: 820px;
+    }
+    .metric-pill {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(233,69,96,0.25);
+      border-radius: 100px;
+      padding: 0.5rem 1.3rem;
+      text-align: center;
+      min-width: 145px;
+    }
+    .metric-pill .val {
+      font-family: var(--serif);
+      font-size: 1.55rem;
+      color: var(--accent);
+      line-height: 1;
+      display: block;
+    }
+    .metric-pill .lbl {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+
+    /* ── Plots row ── */
+    .plots-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      max-width: 940px;
+      margin: 2rem auto 0;
+    }
+    @media (max-width: 700px) { .plots-row { grid-template-columns: 1fr; } }
+    .plots-row img {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      box-shadow: 0 3px 16px rgba(0,0,0,0.5);
+    }
+
+    /* ── BibTeX ── */
+    .bibtex-section { background: var(--light-bg); }
+    .bibtex-box {
+      position: relative;
+      background: var(--brand);
+      color: rgba(255,255,255,0.85);
+      font-family: 'Courier New', monospace;
+      font-size: 0.82rem;
+      line-height: 1.7;
+      border-radius: 12px;
+      padding: 1.5rem 1.5rem 1.25rem;
+      overflow-x: auto;
+      max-width: 720px;
+      margin: 1.25rem auto 0;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      background: rgba(233,69,96,0.2);
+      border: 1px solid rgba(233,69,96,0.4);
+      color: rgba(255,255,255,0.8);
+      border-radius: 6px;
+      padding: 0.3rem 0.75rem;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .copy-btn:hover { background: rgba(233,69,96,0.4); }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--brand);
+      color: rgba(255,255,255,0.5);
+      text-align: center;
+      padding: 2rem 1.5rem;
+      font-size: 0.85rem;
+    }
+    footer a { color: rgba(233,69,96,0.8); }
+
+    /* reward step badges in artist section */
+    .reward-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      max-width: 900px;
+      margin: 1.5rem auto 0;
+    }
+    .reward-chip {
+      background: var(--light-bg);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      padding: 0.9rem 1rem;
+    }
+    .reward-chip h4 { font-size: 0.85rem; font-weight: 700; color: var(--brand); margin-bottom: 0.25rem; }
+    .reward-chip p  { font-size: 0.8rem; color: var(--muted); margin: 0; line-height: 1.5; }
+    .reward-chip.c2 { border-left-color: #4f46e5; }
+    .reward-chip.c3 { border-left-color: #059669; }
+    .reward-chip.c4 { border-left-color: #d97706; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+     NAVBAR
+══════════════════════════════════════════════ -->
+<nav class="navbar" role="navigation">
+  <div class="container" style="display:flex;align-items:center;justify-content:space-between;padding:0 1rem;">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="#">
+        <span class="accent">Ar2Can</span>&nbsp;· Multi-Human Generation
+      </a>
+    </div>
+    <div style="display:flex;gap:0.25rem;align-items:center;">
+      <a class="navbar-item" href="#abstract">Abstract</a>
+      <a class="navbar-item" href="#framework">Framework</a>
+      <a class="navbar-item" href="#method">Method</a>
+      <a class="navbar-item" href="#results">Results</a>
+      <a class="navbar-item" href="#bibtex">BibTeX</a>
+    </div>
+  </div>
+</nav>
+
+
+<!-- ══════════════════════════════════════════════
+     HERO
+══════════════════════════════════════════════ -->
+<header class="hero-section">
+  <div class="hero-content container">
+    <div class="venue-tag">arXiv 2025 &nbsp;·&nbsp; Qualcomm AI Research</div>
+
+    <h1 class="paper-title">
+      <span class="highlight">Ar2Can</span>: An Architect and an Artist<br />
+      Leveraging a Canvas for Multi-Human Generation
+    </h1>
+
+    <p class="authors">
+      <!-- TODO: add personal links for each author -->
+      <a href="#">Shubhankar Borse</a>,&ensp;
+      <a href="#">Phuc Pham</a>,&ensp;
+      <a href="#">Farzad Farhadzadeh</a>,&ensp;
+      <a href="#">Seokeon Choi</a>,&ensp;
+      <a href="#">Phong Ha Nguyen</a>,&ensp;
+      <a href="#">Anh Tuan Tran</a>,&ensp;
+      <a href="#">Sungrack Yun</a>,&ensp;
+      <a href="#">Munawar Hayat</a>,&ensp;
+      <a href="#">Fatih Porikli</a>
+    </p>
+    <p class="affiliation">Qualcomm AI Research</p>
+
+    <div class="hero-links">
+      <a class="btn-hero btn-primary" href="https://arxiv.org/pdf/2511.22690.pdf" target="_blank">
+        <i class="fas fa-file-pdf"></i> Paper
+      </a>
+      <a class="btn-hero btn-secondary" href="https://arxiv.org/abs/2511.22690" target="_blank">
+        <i class="fas fa-external-link-alt"></i> arXiv
+      </a>
+      <a class="btn-hero btn-secondary" href="https://qualcomm-ai-research.github.io/ar2can/" target="_blank">
+        <i class="fas fa-globe"></i> Project Page
+      </a>
+      <!-- TODO: add GitHub repo link when available -->
+      <a class="btn-hero btn-secondary" href="#bibtex">
+        <i class="fas fa-quote-right"></i> Cite
+      </a>
+    </div>
+  </div>
+</header>
+
+
+<!-- ══════════════════════════════════════════════
+     ABSTRACT
+══════════════════════════════════════════════ -->
+<section id="abstract">
+  <div class="container">
+    <div class="text-center section-body">
+      <p class="section-label">Abstract</p>
+      <h2 class="section-title">Disentangling Spatial Planning from Identity Rendering</h2>
+      <p>
+        Despite recent advances in personalized image generation, existing models consistently fail to produce
+        reliable multi-human scenes, often merging or losing facial identity. We present <strong>Ar2Can</strong>,
+        a novel two-stage framework that disentangles spatial planning from identity rendering for multi-human
+        generation. The <strong>Architect</strong> predicts structured layouts, specifying where each person
+        should appear. The <strong>Artist</strong> then synthesizes photorealistic images, guided by a
+        spatially-grounded face matching reward that combines Hungarian spatial alignment with identity
+        similarity. This approach ensures faces are rendered at correct locations and faithfully preserve
+        reference identities.
+      </p>
+      <p>
+        We develop two Architect variants, seamlessly integrated with our diffusion-based Artist model.
+        This is optimized via Group Relative Policy Optimization (GRPO) using compositional rewards for
+        count accuracy, image quality, and identity matching. Evaluated on the MultiHuman-Testbench, Ar2Can
+        achieves substantial improvements in both count accuracy and identity preservation, while maintaining
+        high perceptual quality. Notably, our method achieves these results using primarily <strong>synthetic
+        data</strong>, without requiring real multi-human images.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
+     FRAMEWORK OVERVIEW (canvas_teaser)
+══════════════════════════════════════════════ -->
+<section id="framework">
+  <div class="container">
+    <div class="text-center section-body">
+      <p class="section-label">Framework</p>
+      <h2 class="section-title">Architect + Canvas + Artist</h2>
+      <p>
+        Ar2Can decomposes multi-human generation into two stages. The <strong>Architect</strong> first
+        generates a structured spatial plan — bounding boxes (and optionally pose) specifying where and
+        how each person should appear. The <strong>Artist</strong> then renders the photorealistic image
+        conditioned on this spatial plan, reference identities, and the text prompt. This explicit
+        decomposition eliminates the identity merging and swapping failures that plague single-stage methods.
+      </p>
+    </div>
+
+    <div class="fig-wrap">
+      <img src="static/images/canvas_teaser.jpg" alt="Ar2Can Framework Overview: Architect predicts layout, Artist renders photorealistic image." />
+    </div>
+    <p class="fig-caption">
+      <strong>Fig 1.</strong> Ar2Can Framework Overview. Our two-stage approach decomposes multi-human
+      generation into spatial planning (Architect) and identity-preserving rendering (Artist). The Architect
+      first visualizes where each person should be placed; the Artist then renders the complete scene with
+      realistic pose and lighting.
+    </p>
+
+    <!-- Gallery teaser -->
+    <div class="fig-wrap" style="margin-top:2.5rem;max-width:960px;">
+      <img src="static/images/ar2can_teaser.jpg" alt="Ar2Can generates photorealistic multi-human scenes preserving individual identities." />
+    </div>
+    <p class="fig-caption">
+      <strong>Fig 2.</strong> Ar2Can generates highly photorealistic multi-human scenes with 1–5 people
+      while preserving individual identities. Our two-stage architecture produces natural poses, realistic
+      lighting, and proper spatial arrangements without identity merging or blending artifacts.
+    </p>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
+     METHOD
+══════════════════════════════════════════════ -->
+<section id="method">
+  <div class="container">
+    <div class="text-center section-body">
+      <p class="section-label">Method</p>
+      <h2 class="section-title">Two-Stage Architecture</h2>
+    </div>
+
+    <!-- ── Architect ── -->
+    <div class="section-body" style="max-width:900px;">
+      <h3 class="subsection-title">Architect: Spatial Layout Generation</h3>
+      <p style="color:var(--muted);">
+        The Architect generates facial bounding boxes and/or pose from textual descriptions, focusing on
+        accurate instance counts and spatially plausible placements. We design two complementary variants
+        with different efficiency trade-offs:
+      </p>
+    </div>
+
+    <div class="arch-grid">
+      <div class="arch-card a">
+        <span class="arch-badge">Architect-A</span>
+        <h3>LLM-based Bounding-Box Regression</h3>
+        <p>
+          Built on <strong>Qwen-2.5 (0.5B)</strong>, extended with special layout tokens
+          <code>&lt;SoL&gt;</code>, <code>&lt;EoL&gt;</code>, <code>&lt;C&gt;</code> and dual prediction
+          heads for continuous coordinate regression alongside standard token generation.
+        </p>
+        <ul>
+          <li>Strong language understanding for accurate counts</li>
+          <li>Handles complex linguistic reasoning (e.g. "two girls next to a man")</li>
+          <li>Data-sorting for stable coordinate regression</li>
+          <li>Trained with CE + gIoU + L1 losses</li>
+        </ul>
+      </div>
+      <div class="arch-card b">
+        <span class="arch-badge">Architect-B</span>
+        <h3>T2I-based Layout Generation</h3>
+        <p>
+          Fine-tunes <strong>Flux-Schnell</strong> via GRPO with count accuracy and HPSv3 rewards,
+          leveraging the model's 2D spatial priors to synthesize layout sketches from which bounding boxes
+          and human pose coordinates are extracted.
+        </p>
+        <ul>
+          <li>Rich spatial priors from 2D generation</li>
+          <li>Generates both face boxes and body pose</li>
+          <li>Fast: only 4 denoising steps</li>
+          <li>HPSv3 reward prevents spatial reward hacking</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ── Artist ── -->
+    <div class="section-body" style="max-width:900px;margin-top:1rem;">
+      <h3 class="subsection-title">Artist: Identity-Preserving Rendering</h3>
+      <p style="color:var(--muted);">
+        The Artist — <strong>Flux-Kontext</strong> fine-tuned via GRPO — renders photorealistic multi-human
+        images conditioned on the Architect's layout, reference identity images, and the text prompt. Rather
+        than supervised fine-tuning (which requires expensive paired annotations), we use RL to directly
+        optimise non-differentiable objectives via a four-component compositional reward.
+      </p>
+      <p style="color:var(--muted);">
+        A key innovation is the <strong>spatially-grounded face matching reward</strong>: Hungarian algorithm
+        matching first establishes spatial correspondence between Architect-predicted centroids and detected
+        face locations, then ArcFace identity similarity is computed only between spatially-matched pairs.
+        This prevents copy-paste artifacts while jointly optimising location accuracy and identity
+        preservation. Token dropping (2× speedup) and shared RoPE encodings for overlapping regions
+        further improve efficiency and occlusion handling.
+      </p>
+    </div>
+
+    <div class="reward-row">
+      <div class="reward-chip">
+        <h4>Count Accuracy</h4>
+        <p>Binary reward: generated face count must exactly match the target count in the prompt.</p>
+      </div>
+      <div class="reward-chip c2">
+        <h4>HPSv3 Quality</h4>
+        <p>Normalised human preference score ensuring prompt alignment and preventing visual artifacts.</p>
+      </div>
+      <div class="reward-chip c3">
+        <h4>Face Matching</h4>
+        <p>Hungarian centroid matching + ArcFace similarity. Jointly optimises spatial location and identity.</p>
+      </div>
+      <div class="reward-chip c4">
+        <h4>Pose Correction</h4>
+        <p>Frontality score from facial landmarks suppresses copy-paste artifacts and encourages natural poses.</p>
+      </div>
+    </div>
+
+    <!-- Artist training figure -->
+    <div class="fig-wrap" style="margin-top:2.5rem;max-width:920px;">
+      <img src="static/images/ar2can_artist.jpg" alt="Artist training pipeline with GRPO and compositional rewards." />
+    </div>
+    <p class="fig-caption">
+      <strong>Fig 3.</strong> Artist training pipeline with GRPO. Given the input canvas and text prompt,
+      the model samples a group of images and optimises over four compositional rewards: count accuracy,
+      prompt alignment / aesthetic quality (HPSv3), spatially-grounded face matching, and pose correction.
+      Hungarian centroid matching (right) establishes flexible spatial correspondence before computing
+      ArcFace identity similarity.
+    </p>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
+     RESULTS
+══════════════════════════════════════════════ -->
+<section id="results" class="results-section">
+  <div class="container">
+    <div class="text-center section-body" style="max-width:820px;">
+      <p class="section-label">Results</p>
+      <h2 class="section-title">State-of-the-Art on MultiHuman-Testbench</h2>
+      <p>
+        Ar2Can substantially outperforms both proprietary systems (GPT-Image-1, Nanobanana) and
+        open-source methods on identity preservation and count accuracy, while maintaining competitive
+        perceptual quality and action alignment.
+      </p>
+    </div>
+
+    <!-- Key metrics -->
+    <div class="metrics-strip">
+      <div class="metric-pill">
+        <span class="val">90.2</span>
+        <span class="lbl">Count Accuracy</span>
+      </div>
+      <div class="metric-pill">
+        <span class="val">68.2</span>
+        <span class="lbl">Multi-ID Similarity</span>
+      </div>
+      <div class="metric-pill">
+        <span class="val">72.4</span>
+        <span class="lbl">Unified Score</span>
+      </div>
+      <div class="metric-pill">
+        <span class="val">+13.7pts</span>
+        <span class="lbl">over MH-OmniGen</span>
+      </div>
+    </div>
+
+    <!-- Qualitative comparison figure -->
+    <div class="fig-wrap" style="margin-top:3rem;max-width:960px;">
+      <img src="static/images/ar2can_results.jpg" alt="Qualitative comparison with state-of-the-art methods on MultiHuman-Testbench." />
+    </div>
+    <p class="fig-caption">
+      <strong>Fig 4.</strong> Qualitative comparison with state-of-the-art methods. Left: reference images
+      and text prompts from MultiHuman-Testbench. Right: outputs from all methods. Scorecards indicate
+      ID preservation and prompt alignment. Existing methods frequently fail at one or both objectives,
+      while Ar2Can consistently achieves both across diverse multi-human scenes.
+    </p>
+
+    <!-- Quantitative plots -->
+    <div style="text-align:center;margin-top:3rem;">
+      <p class="section-label" style="color:rgba(233,69,96,0.9);">Quantitative Analysis</p>
+      <p style="max-width:700px;margin:0 auto 1.5rem;">
+        Ar2Can maintains consistent identity preservation and prompt alignment as person count scales
+        from 1 to 5, with a strongly favourable latency–quality trade-off.
+      </p>
+    </div>
+    <div class="fig-wrap" style="max-width:960px;">
+      <img src="static/images/ar2can_plots.jpg" alt="Quantitative analysis: latency vs quality, Multi-ID vs person count, HPS vs person count." />
+    </div>
+    <p class="fig-caption">
+      <strong>Fig 5.</strong> Quantitative analysis and scalability. <em>(a)</em> Latency–quality
+      trade-off on A100 GPU. <em>(b)</em> Multi-ID similarity vs. person count. <em>(c)</em> HPS vs.
+      person count. Ar2Can maintains consistent identity preservation and prompt alignment across 1–5
+      people, with token sharing/dropping providing a further 2× speedup.
+    </p>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
+     BIBTEX
+══════════════════════════════════════════════ -->
+<section id="bibtex" class="bibtex-section">
+  <div class="container">
+    <div class="text-center section-body">
+      <p class="section-label">Citation</p>
+      <h2 class="section-title">BibTeX</h2>
+      <p>If you find Ar2Can useful in your research, please cite our paper:</p>
+    </div>
+
+    <div class="bibtex-box" id="bibtex-block">
+      <button class="copy-btn" onclick="copyBibtex()" title="Copy BibTeX">
+        <i class="fas fa-copy"></i> Copy
+      </button>
+<pre style="margin:0;white-space:pre-wrap;">@article{borse2025ar2can,
+  title={Ar2Can: An Architect and an Artist Leveraging a Canvas for Multi-Human Generation},
+  author={Borse, Shubhankar and Pham, Phuc and Farhadzadeh, Farzad and Choi, Seokeon
+          and Nguyen, Phong Ha and Tran, Anh Tuan and Yun, Sungrack
+          and Hayat, Munawar and Porikli, Fatih},
+  journal={arXiv preprint arXiv:2511.22690},
+  year={2025}
+}</pre>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════════ -->
+<footer>
+  <p>
+    This page was built using the
+    <a href="https://github.com/eliahuhorwitz/Academic-project-page-template" target="_blank">Academic Project Page Template</a>,
+    adopted from the <a href="https://nerfies.github.io" target="_blank">Nerfies</a> project page.
+  </p>
+  <p style="margin-top:0.5rem;">
+    Licensed under <a href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank">CC BY-SA 4.0</a>.
+    &nbsp;·&nbsp; Qualcomm AI Research is an initiative of Qualcomm Technologies, Inc.
+  </p>
+</footer>
+
+
+<script>
+  function copyBibtex() {
+    const pre = document.querySelector('#bibtex-block pre');
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      const btn = document.querySelector('.copy-btn');
+      btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+      setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i> Copy'; }, 2000);
+    });
+  }
+
+  /* Active nav highlight on scroll */
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.navbar-item[href^="#"]');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const id = e.target.id;
+        navLinks.forEach(a => {
+          a.style.color = a.getAttribute('href') === '#' + id
+            ? 'rgba(233,69,96,0.95)' : '';
+        });
+      }
+    });
+  }, { threshold: 0.35 });
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
