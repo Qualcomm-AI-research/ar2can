@@ -1,0 +1,22 @@
+# Model weights
+loras/
+
+# Generated at runtime
+saved_probes/
+output*.png
+output*.jpg
+*_probe.png
+*_probe.jpg
+*_canvas.png
+*_canvas.jpg
+__pycache__/
+*.pyc
+*.pyo
+.env
+*.egg-info/
+dist/
+build/
+*.log
+*nfs*
+.claude/
+

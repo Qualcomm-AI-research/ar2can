@@ -1,0 +1,31 @@
+# ar2can: multi-reference face composition pipeline environment.
+# Requires a CUDA-capable GPU (CUDA 12.1+). Install with:
+#   conda env create -f environment.yml && conda activate ar2can
+name: ar2can
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.11
+  - pytorch=2.6.0
+  - torchvision=0.21.0
+  - pytorch-cuda=12.1
+  - pip:
+    - diffusers>=0.36.0,<0.37.0
+    - transformers>=4.53.1,<4.54.0
+    - accelerate>=1.10.1,<1.11.0
+    - peft>=0.17.1,<0.18.0
+    - Pillow>=11.3.0,<12.0.0
+    - numpy>=2.2.6,<2.3.0
+    - gradio>=6.14.0,<6.15.0
+    - pyfacer>=0.0.5,<0.1.0
+    - opencv-python-headless>=4.12.0.88,<4.13.0
+    - sentencepiece>=0.2.1,<0.3.0
+    - protobuf>=6.33.0,<6.34.0
+    - safetensors>=0.6.2,<0.7.0
+    - pandas>=2.3.3,<2.4.0
+    - pyarrow>=21.0.0,<22.0.0
+    - uvloop>=0.22.1,<0.23.0
+    - httptools>=0.7.1,<0.8.0
