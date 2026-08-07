@@ -24,6 +24,7 @@ Despite recent advances in personalized image generation, existing models consis
 
 - [How It Works](#how-it-works)
 - [Prerequisites](#prerequisites)
+- [Model Weights](#model-weights)
 - [Quick Start (Docker)](#quick-start-docker)
 - [Using Local Model Weights](#using-local-model-weights-avoid-re-downloading)
 - [CLI Inference Options](#cli-inference-options-inferpy)
@@ -54,6 +55,29 @@ The pipeline has two stages:
 - GPUs with >= 70 GB VRAM (required for loading both models simultaneously).
 - `nvidia-container-toolkit` for GPU access inside Docker.
 - **Hugging Face account with access token** (see Quick Start below).
+
+---
+
+## Model Weights
+
+The Architect and Artist LoRA adapter weights are distributed as GitHub release assets.
+
+**Download from:** [GitHub Releases](https://github.com/Qualcomm-AI-research/ar2can/releases)
+
+After downloading, place the weights so the repository looks like:
+
+```
+ar2can/
+├── loras/
+│   ├── architect/
+│   │   ├── adapter_config.json   ← already in repo
+│   │   └── adapter_model.safetensors   ← download from release
+│   └── artist/
+│       ├── adapter_config.json   ← already in repo
+│       └── adapter_model.safetensors   ← download from release
+```
+
+The inference code defaults to `loras/architect` and `loras/artist`. Override via environment variables `ARCHITECT_LORA` and `ARTIST_LORA` if placing weights elsewhere.
 
 ---
 
@@ -280,7 +304,7 @@ Preserve exact facial identity.
 This project is licensed under the BSD-3-Clause-Clear license.
 See [LICENSE](LICENSE) for the full license text.
 
-> **Disclaimer:** The Artist base model [FLUX.1-Kontext-dev](https://huggingface.co/black-forest-labs/FLUX.1-Kontext-dev) is released under a [Non-commercial License](https://huggingface.co/black-forest-labs/FLUX.1-Kontext-dev/blob/main/LICENSE.md). Consequently, the Ar2Can Artist LoRA weights are derived from FLUX.1-Kontext-dev and are therefore also subject to those Non-commercial License restrictions. Any use of the Ar2Can Artist LoRA weights must comply with the FLUX.1-Kontext-dev Non-commercial License terms.
+> **Disclaimer:** The Artist base model [FLUX.1-Kontext-dev](https://huggingface.co/black-forest-labs/FLUX.1-Kontext-dev) is released under a [Non-commercial License](https://huggingface.co/black-forest-labs/FLUX.1-Kontext-dev/blob/main/LICENSE.md). Consequently, the Ar2Can Artist LoRA weights are derived from FLUX.1-Kontext-dev and are therefore also subject to those Non-commercial License restrictions. Any use of the Ar2Can Artist LoRA weights must comply with the FLUX.1-Kontext-dev Non-commercial License terms. The full license text is available in [LICENSE-FLUX1-dev.txt](LICENSE-FLUX1-dev.txt).
 
 ---
 

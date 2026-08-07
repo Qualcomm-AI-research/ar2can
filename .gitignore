@@ -1,5 +1,5 @@
-# Model weights
-loras/
+# Model weights (download from GitHub releases)
+loras/**/*.safetensors
 
 # Generated at runtime
 saved_probes/
