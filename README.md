@@ -24,6 +24,7 @@ Despite recent advances in personalized image generation, existing models consis
 
 - [How It Works](#how-it-works)
 - [Prerequisites](#prerequisites)
+- [Model Weights](#model-weights)
 - [Quick Start (Docker)](#quick-start-docker)
 - [Using Local Model Weights](#using-local-model-weights-avoid-re-downloading)
 - [CLI Inference Options](#cli-inference-options-inferpy)
@@ -54,6 +55,29 @@ The pipeline has two stages:
 - GPUs with >= 70 GB VRAM (required for loading both models simultaneously).
 - `nvidia-container-toolkit` for GPU access inside Docker.
 - **Hugging Face account with access token** (see Quick Start below).
+
+---
+
+## Model Weights
+
+The Architect and Artist LoRA adapter weights are distributed as GitHub release assets.
+
+**Download from:** [GitHub Releases](https://github.com/Qualcomm-AI-research/ar2can/releases)
+
+After downloading, place the weights so the repository looks like:
+
+```
+ar2can/
+├── loras/
+│   ├── architect/
+│   │   ├── adapter_config.json   ← already in repo
+│   │   └── adapter_model.safetensors   ← download from release
+│   └── artist/
+│       ├── adapter_config.json   ← already in repo
+│       └── adapter_model.safetensors   ← download from release
+```
+
+The inference code defaults to `loras/architect` and `loras/artist`. Override via environment variables `ARCHITECT_LORA` and `ARTIST_LORA` if placing weights elsewhere.
 
 ---
 
