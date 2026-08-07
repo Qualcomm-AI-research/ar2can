@@ -280,7 +280,7 @@ Preserve exact facial identity.
 This project is licensed under the BSD-3-Clause-Clear license.
 See [LICENSE](LICENSE) for the full license text.
 
-> **Disclaimer:** The Artist base model [FLUX.1-Kontext-dev](https://huggingface.co/black-forest-labs/FLUX.1-Kontext-dev) is released under a [Non-commercial License](https://huggingface.co/black-forest-labs/FLUX.1-Kontext-dev/blob/main/LICENSE.md). Consequently, the Ar2Can Artist LoRA weights are derived from FLUX.1-Kontext-dev and are therefore also subject to those Non-commercial License restrictions. Any use of the Ar2Can Artist LoRA weights must comply with the FLUX.1-Kontext-dev Non-commercial License terms.
+> **Disclaimer:** The Artist base model [FLUX.1-Kontext-dev](https://huggingface.co/black-forest-labs/FLUX.1-Kontext-dev) is released under a [Non-commercial License](https://huggingface.co/black-forest-labs/FLUX.1-Kontext-dev/blob/main/LICENSE.md). Consequently, the Ar2Can Artist LoRA weights are derived from FLUX.1-Kontext-dev and are therefore also subject to those Non-commercial License restrictions. Any use of the Ar2Can Artist LoRA weights must comply with the FLUX.1-Kontext-dev Non-commercial License terms. The full license text is available in [LICENSE-FLUX1-dev.txt](LICENSE-FLUX1-dev.txt).
 
 ---
 
