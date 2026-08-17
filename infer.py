@@ -32,6 +32,7 @@ ARCHITECT_DIR_DEFAULT = os.getenv("ARCHITECT_DIR", "black-forest-labs/FLUX.1-sch
 ARTIST_DIR_DEFAULT = os.getenv("ARTIST_DIR", "black-forest-labs/FLUX.1-Kontext-dev")
 ARCHITECT_LORA_DEFAULT = os.getenv("ARCHITECT_LORA", "loras/architect")
 ARTIST_LORA_DEFAULT = os.getenv("ARTIST_LORA", "loras/artist")
+HF_REPO_ID = os.getenv("AR2CAN_LORA_HF", "Qualcomm-AI-Research/ar2can")
 
 # ── Pipeline defaults (mirror app.py) ───────────────────────────────────
 DEFAULT_PROMPT = (
@@ -49,7 +50,7 @@ DEFAULT_STEPS_ARTIST = 20
 DEFAULT_GUIDANCE_ARTIST = 2.6
 DEFAULT_FACE_SCALE = 1.5
 DEFAULT_TARGET_PAD = 1.0
-DEFAULT_MASK_MODE = "loose"  # relaxed segmentation
+DEFAULT_MASK_MODE = "tight"  # relaxed segmentation
 DEFAULT_SEED = 0
 DEFAULT_OUTPUT = "output.png"
 DEFAULT_FACES = (
@@ -102,10 +103,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--no-seg", action="store_true", help="Disable segmentation")
     parser.add_argument("--no-align", action="store_true", help="Disable face alignment")
     parser.add_argument(
-        "--use-fg-mask",
-        action="store_true",
-        help="Pass foreground cond_image_mask to artist",
+        "--no-fg-mask",
+        dest="use_fg_mask",
+        action="store_false",
+        help="Disable foreground cond_image_mask (enabled by default)",
     )
+    parser.set_defaults(use_fg_mask=True)
 
     return parser.parse_args()
 
@@ -136,13 +139,20 @@ def load_models(
     architect_pipe = DiffusionPipeline.from_pretrained(args.architect_dir, torch_dtype=dtype).to(
         device
     )
-    if args.architect_lora and peft_ok and os.path.isdir(args.architect_lora):
+    if peft_ok:
         try:
+            if args.architect_lora and os.path.isfile(
+                os.path.join(args.architect_lora, "adapter_model.safetensors")
+            ):
+                arch_src, arch_kw = args.architect_lora, {}
+            else:
+                print(f"[Load] Architect LoRA not found locally — loading from HuggingFace: {HF_REPO_ID}")
+                arch_src, arch_kw = HF_REPO_ID, {"subfolder": "architect"}
             architect_pipe.transformer = PeftModel.from_pretrained(
-                architect_pipe.transformer, args.architect_lora
+                architect_pipe.transformer, arch_src, **arch_kw
             )
             architect_pipe.transformer.set_adapter("default")
-            print(f"[Load] Architect LoRA: {args.architect_lora}")
+            print(f"[Load] Architect LoRA: {arch_src}")
         except Exception as e:
             print(f"[Warn] Architect LoRA skipped: {e}")
 
@@ -170,14 +180,21 @@ def load_models(
     # Artist
     print(f"[Load] Artist: {args.artist_dir}")
     artist_pipe = FluxArtistPipeline.from_pretrained(args.artist_dir, torch_dtype=dtype).to(device)
-    if args.artist_lora and peft_ok and os.path.isdir(args.artist_lora):
+    if peft_ok:
         try:
+            if args.artist_lora and os.path.isfile(
+                os.path.join(args.artist_lora, "adapter_model.safetensors")
+            ):
+                art_src, art_kw = args.artist_lora, {}
+            else:
+                print(f"[Load] Artist LoRA not found locally — loading from HuggingFace: {HF_REPO_ID}")
+                art_src, art_kw = HF_REPO_ID, {"subfolder": "artist"}
             artist_pipe.transformer = PeftModel.from_pretrained(
-                artist_pipe.transformer, args.artist_lora
+                artist_pipe.transformer, art_src, **art_kw
             )
             artist_pipe.transformer.set_adapter("default")
             artist_pipe.transformer = artist_pipe.transformer.merge_and_unload()
-            print(f"[Load] Artist LoRA merged: {args.artist_lora}")
+            print(f"[Load] Artist LoRA merged: {art_src}")
         except Exception as e:
             print(f"[Warn] Artist LoRA skipped: {e}")
 

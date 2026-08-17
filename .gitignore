@@ -1,8 +1,13 @@
 # Model weights (download from GitHub releases)
 loras/**/*.safetensors
 
+# HuggingFace release folder (contains large weights)
+hf_release/
+hf_upload.py
+
 # Generated at runtime
 saved_probes/
+outputs/
 output*.png
 output*.jpg
 *_probe.png

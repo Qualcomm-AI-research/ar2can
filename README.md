@@ -60,11 +60,11 @@ The pipeline has two stages:
 
 ## Model Weights
 
-The Architect and Artist LoRA adapter weights are distributed as GitHub release assets.
+The Architect and Artist LoRA adapter weights can be obtained in two ways:
 
-**Download from:** [GitHub Releases](https://github.com/Qualcomm-AI-research/ar2can/releases)
+**Option A: HuggingFace (automatic):** If `loras/architect/` or `loras/artist/` do not contain local checkpoints, the code automatically downloads the adapters from HuggingFace (`Qualcomm-AI-Research/ar2can`) at first run. No extra steps required.
 
-After downloading, place the weights so the repository looks like:
+**Option B: GitHub Release (manual):** Download the safetensors files from [GitHub Releases](https://github.com/Qualcomm-AI-research/ar2can/releases) and place them at:
 
 ```
 ar2can/
@@ -77,7 +77,7 @@ ar2can/
 │       └── adapter_model.safetensors   ← download from release
 ```
 
-The inference code defaults to `loras/architect` and `loras/artist`. Override via environment variables `ARCHITECT_LORA` and `ARTIST_LORA` if placing weights elsewhere.
+Override local paths via `ARCHITECT_LORA` / `ARTIST_LORA` env vars, or override the HuggingFace repo ID via `AR2CAN_LORA_HF`.
 
 ---
 
@@ -183,9 +183,10 @@ All variables have defaults; override them via `-e VAR=value` or `--env-file`.
 | Variable | Default | Description |
 |---|---|---|
 | `ARCHITECT_DIR` | `black-forest-labs/FLUX.1-schnell` | Path or HF repo for Architect model |
-| `ARCHITECT_LORA` | `loras/architect` | Path to Architect LoRA adapter |
+| `ARCHITECT_LORA` | `loras/architect` | Local path to Architect LoRA adapter directory |
 | `ARTIST_DIR` | `black-forest-labs/FLUX.1-Kontext-dev` | Path or HF repo for Artist model |
-| `ARTIST_LORA` | `loras/artist` | Path to Artist LoRA adapter |
+| `ARTIST_LORA` | `loras/artist` | Local path to Artist LoRA adapter directory |
+| `AR2CAN_LORA_HF` | `Qualcomm-AI-Research/ar2can` | HuggingFace repo ID used when local LoRA paths are absent |
 | `ARTIST_LORA_2` | (none) | Optional second Artist LoRA |
 | `GUIDANCE_ARCHITECT` | `0.0` | CFG scale for Architect stage |
 | `STEPS_ARCHITECT` | `4` | Inference steps for Architect stage |

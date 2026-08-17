@@ -142,6 +142,7 @@ ARTIST_DIR = os.getenv("ARTIST_DIR", "black-forest-labs/FLUX.1-Kontext-dev")
 
 ARTIST_LORA = os.getenv("ARTIST_LORA", "loras/artist")
 ARTIST_LORA_2 = os.getenv("ARTIST_LORA_2", None)
+HF_REPO_ID = os.getenv("AR2CAN_LORA_HF", "Qualcomm-AI-Research/ar2can")
 
 # Architect defaults
 GUIDANCE_ARCHITECT = float(os.getenv("GUIDANCE_ARCHITECT", 0.0))
@@ -506,17 +507,23 @@ def load_models() -> None:
         )
         architect_pipe = architect_pipe.to(device)
         if (
-            ARCHITECT_LORA
-            and PEFT_AVAILABLE
+            PEFT_AVAILABLE
             and hasattr(architect_pipe, "transformer")
             and architect_pipe.transformer is not None
         ):
             try:
+                if ARCHITECT_LORA and os.path.isfile(
+                    os.path.join(ARCHITECT_LORA, "adapter_model.safetensors")
+                ):
+                    arch_src, arch_kw = ARCHITECT_LORA, {}
+                else:
+                    print(f"[Load] Architect LoRA not found locally — loading from HuggingFace: {HF_REPO_ID}")
+                    arch_src, arch_kw = HF_REPO_ID, {"subfolder": "architect"}
                 architect_pipe.transformer = PeftModel.from_pretrained(
-                    architect_pipe.transformer, ARCHITECT_LORA
+                    architect_pipe.transformer, arch_src, **arch_kw
                 )
                 architect_pipe.transformer.set_adapter("default")
-                print(f"[Load] Architect LoRA loaded: {ARCHITECT_LORA}")
+                print(f"[Load] Architect LoRA loaded: {arch_src}")
             except Exception as e:
                 print(f"[Warn] Architect LoRA load failed: {e}")
 
@@ -547,18 +554,24 @@ def load_models() -> None:
         artist_pipe = FluxArtistPipeline.from_pretrained(ARTIST_DIR, torch_dtype=artist_dtype)
         artist_pipe = artist_pipe.to(device)
         if (
-            ARTIST_LORA
-            and PEFT_AVAILABLE
+            PEFT_AVAILABLE
             and hasattr(artist_pipe, "transformer")
             and artist_pipe.transformer is not None
         ):
             try:
+                if ARTIST_LORA and os.path.isfile(
+                    os.path.join(ARTIST_LORA, "adapter_model.safetensors")
+                ):
+                    art_src, art_kw = ARTIST_LORA, {}
+                else:
+                    print(f"[Load] Artist LoRA not found locally — loading from HuggingFace: {HF_REPO_ID}")
+                    art_src, art_kw = HF_REPO_ID, {"subfolder": "artist"}
                 artist_pipe.transformer = PeftModel.from_pretrained(
-                    artist_pipe.transformer, ARTIST_LORA
+                    artist_pipe.transformer, art_src, **art_kw
                 )
                 artist_pipe.transformer.set_adapter("default")
                 artist_pipe.transformer = artist_pipe.transformer.merge_and_unload()
-                print(f"[Load] Artist LoRA merged: {ARTIST_LORA}")
+                print(f"[Load] Artist LoRA merged: {art_src}")
             except Exception as e:
                 print(f"[Warn] Artist LoRA load failed: {e}")
         if ARTIST_LORA_2:
