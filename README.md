@@ -3,6 +3,7 @@
 [![License: BSD-3-Clause-Clear](https://img.shields.io/badge/License-BSD--3--Clause--Clear-blue.svg)](LICENSE)
 [![arXiv](https://img.shields.io/badge/arXiv-2511.22690-b31b1b.svg)](https://arxiv.org/abs/2511.22690)
 [![Project Page](https://img.shields.io/badge/Project-Page-blue)](https://qualcomm-ai-research.github.io/ar2can/)
+[![HuggingFace](https://img.shields.io/badge/🤗%20HuggingFace-Models-yellow)](https://huggingface.co/Qualcomm-AI-Research/ar2can)
 
 A multi-reference face composition pipeline using FLUX.1-Kontext (Artist) and FLUX.1-schnell (Architect) with LoRA adapters and an optional face segmentation and alignment.
 
