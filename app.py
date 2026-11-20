@@ -18,7 +18,7 @@ Environment overrides (optional):
   SAVED_PROBES_DIR, PROMPT_CACHE_JSON, AUTO_GENERATE_CACHE_PROBES (1/0)
 
 Run:
-  pip install gradio diffusers pillow numpy torch peft facer
+  python -m pip install -r requirements.txt
   python app.py
 """
 

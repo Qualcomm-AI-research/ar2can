@@ -103,8 +103,12 @@ docker build -t ar2can .
 
 ### 3. Run the container
 
+Build the `ar2can` image locally before running these commands. All `docker run`
+examples use `--pull=never` so a missing local image produces an error. If you see
+that error, run `docker build -t ar2can .` first.
+
 ```bash
-docker run -it --gpus all -p 7865:7865 \
+docker run --pull=never -it --gpus all -p 7865:7865 \
   -e HF_TOKEN=${HF_TOKEN} \
   ar2can bash
 ```
@@ -145,7 +149,7 @@ This saves three files alongside the primary output (`output.png`):
 Mount your Hugging Face cache and point the environment variables at it:
 
 ```bash
-docker run -it --gpus all -p 7865:7865 \
+docker run --pull=never -it --gpus all -p 7865:7865 \
   -v ~/.cache/huggingface:/root/.cache/huggingface \
   -e ARCHITECT_DIR=/root/.cache/huggingface/hub/models--black-forest-labs--FLUX.1-schnell/snapshots/... \
   -e ARTIST_DIR=/root/.cache/huggingface/hub/models--black-forest-labs--FLUX.1-Kontext-dev/snapshots/... \
@@ -226,8 +230,11 @@ python infer.py --faces faces/person_1.webp --prompt "..."
 
 ### pip
 
+Install from the requirements file, which pins the `pyfacer` distribution that
+provides the `facer` import used by the pipeline.
+
 ```bash
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 python app.py
 ```
 
@@ -243,7 +250,7 @@ docker build -t ar2can .
 docker exec -it ar2can bash
 
 # Check GPU visibility
-docker run --rm --gpus all ar2can nvidia-smi
+docker run --pull=never --rm --gpus all ar2can nvidia-smi
 
 # Remove image
 docker rmi ar2can

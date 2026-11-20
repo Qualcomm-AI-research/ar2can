@@ -9,8 +9,8 @@ diffusion pipeline imports.
 import logging
 from typing import Optional
 
-# pip install "git+https://github.com/FacePerceiver/facer.git@main"
-# OR pip install pyfacer
+# Install dependencies from the repository root:
+# python -m pip install -r requirements.txt (pins the pyfacer distribution).
 import facer
 import numpy as np
 import torch
