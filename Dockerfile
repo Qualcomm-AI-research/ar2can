@@ -17,6 +17,17 @@ RUN apt-get update && apt-get install -y \
 RUN ln -s /usr/bin/python3.11 /usr/bin/python
 RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11
 
+# Match host ownership when mounting model caches; runtime IDs must be non-root.
+ARG APP_UID=1000
+ARG APP_GID=1000
+RUN test "${APP_UID}" -gt 0 && test "${APP_GID}" -gt 0 \
+    && groupadd --gid "${APP_GID}" --non-unique appuser \
+    && useradd --uid "${APP_UID}" --gid appuser --no-log-init \
+        --create-home --home-dir /home/user --shell /bin/bash appuser
+
+ENV HF_HOME=/home/user/.cache/huggingface
+ENV TORCH_HOME=/home/user/.cache/torch
+
 WORKDIR /home/user
 
 # PyTorch (cu121)
@@ -29,8 +40,9 @@ COPY requirements.txt .
 RUN python3.11 -m pip install --no-cache-dir -r requirements.txt
 
 # App source
-COPY . .
+COPY --chown=appuser:appuser . .
 
 EXPOSE 7865
 RUN chmod -R 755 /home/user
+USER appuser
 CMD ["/bin/bash"]

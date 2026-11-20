@@ -101,6 +101,9 @@ export HF_TOKEN=your_hf_token_here
 docker build -t ar2can .
 ```
 
+The container runs as `appuser`, with UID and GID `1000` by default. The
+`APP_UID` and `APP_GID` build arguments let you match host ownership for bind mounts.
+
 ### 3. Run the container
 
 Build the `ar2can` image locally before running these commands. All `docker run`
@@ -146,13 +149,20 @@ This saves three files alongside the primary output (`output.png`):
 
 ## Using Local Model Weights (avoid re-downloading)
 
+For Linux bind mounts, build the image with your user and group IDs so the
+container can write to your cache:
+
+```bash
+docker build --build-arg APP_UID="$(id -u)" --build-arg APP_GID="$(id -g)" -t ar2can .
+```
+
 Mount your Hugging Face cache and point the environment variables at it:
 
 ```bash
 docker run --pull=never -it --gpus all -p 7865:7865 \
-  -v ~/.cache/huggingface:/root/.cache/huggingface \
-  -e ARCHITECT_DIR=/root/.cache/huggingface/hub/models--black-forest-labs--FLUX.1-schnell/snapshots/... \
-  -e ARTIST_DIR=/root/.cache/huggingface/hub/models--black-forest-labs--FLUX.1-Kontext-dev/snapshots/... \
+  -v ~/.cache/huggingface:/home/user/.cache/huggingface \
+  -e ARCHITECT_DIR=/home/user/.cache/huggingface/hub/models--black-forest-labs--FLUX.1-schnell/snapshots/... \
+  -e ARTIST_DIR=/home/user/.cache/huggingface/hub/models--black-forest-labs--FLUX.1-Kontext-dev/snapshots/... \
   ar2can bash
 ```
 
